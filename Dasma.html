@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dasma e Fatos & Linda - Planifikues Eventesh</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#c9a84c;--goldl:#e8cc78;--goldd:#8a6c2a;
+  --dark:#07060a;--dark2:#0f0d12;--dark3:#1a1720;--dark4:#211d27;
+  --text:#f7f0e7;--dim:rgba(247,240,231,.62);--dimmer:rgba(247,240,231,.36);
+  --border:rgba(201,168,76,.24);--borderl:rgba(201,168,76,.1);
+  --green:#2ecc71;--red:#e74c3c;--blue:#3498db;--violet:#a78bfa;
+}
+html,body{min-height:100%;font-family:'Montserrat',sans-serif;background:var(--dark);color:var(--text);overflow-x:hidden}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;
+  background:
+    linear-gradient(115deg,rgba(201,168,76,.09),transparent 28%),
+    linear-gradient(245deg,rgba(52,152,219,.08),transparent 30%),
+    var(--dark);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;opacity:.22;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:linear-gradient(to bottom,black,transparent 78%);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:1380px;margin:0 auto;padding:24px}
+.topbar{
+  min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;
+  border:1px solid var(--borderl);background:rgba(15,13,18,.82);backdrop-filter:blur(18px);border-radius:6px;padding:14px 18px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.monogram{
+  width:42px;height:42px;border:1px solid var(--border);display:grid;place-items:center;color:var(--gold);
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;background:rgba(201,168,76,.06);border-radius:4px;flex-shrink:0;
+}
+.eyebrow{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:3px}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,46px);font-weight:300;line-height:1}
+.date-line{font-size:11px;color:var(--dim);margin-top:5px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.btn{
+  border:1px solid var(--borderl);background:rgba(255,255,255,.035);color:var(--dim);border-radius:3px;
+  min-height:38px;padding:0 14px;font-size:9px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;transition:.18s;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+.btn.primary:hover{background:var(--goldl);color:var(--dark)}
+.btn.danger:hover{border-color:var(--red);color:var(--red)}
+.layout{display:grid;grid-template-columns:1.55fr .8fr;gap:18px}
+.panel{
+  background:rgba(15,13,18,.86);border:1px solid var(--borderl);border-radius:6px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.22);
+}
+.panel-head{padding:16px 18px;border-bottom:1px solid var(--borderl);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;font-weight:400}
+.panel-sub{font-size:11px;color:var(--dimmer);margin-top:3px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{
+  border:1px solid var(--borderl);background:rgba(15,13,18,.86);border-radius:6px;padding:16px;min-height:104px;
+}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:38px;color:var(--gold);line-height:1;font-weight:300}
+.stat-l{font-size:8px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dimmer);margin-top:7px;font-weight:700}
+.stat-note{font-size:10px;color:var(--dim);margin-top:8px;line-height:1.5}
+.toolbar{display:grid;grid-template-columns:1fr 150px 150px 120px;gap:9px;padding:14px 18px;border-bottom:1px solid var(--borderl);background:rgba(255,255,255,.016)}
+.field,.select,.area{
+  width:100%;background:rgba(255,255,255,.045);border:1px solid var(--borderl);border-radius:3px;color:var(--text);
+  outline:none;padding:10px 12px;font-size:12px;transition:border-color .18s;
+}
+.field:focus,.select:focus,.area:focus{border-color:var(--border)}
+.field::placeholder,.area::placeholder{color:var(--dimmer)}
+.select option{background:var(--dark2);color:var(--text)}
+.timeline{padding:12px 18px 18px}
+.event{
+  display:grid;grid-template-columns:98px 1fr auto;gap:14px;position:relative;padding:14px 0 14px 18px;border-bottom:1px solid rgba(201,168,76,.075);
+}
+.event:last-child{border-bottom:none}
+.event::before{content:"";position:absolute;left:0;top:22px;bottom:-22px;width:1px;background:var(--borderl)}
+.event:last-child::before{bottom:22px}
+.event::after{content:"";position:absolute;left:-4px;top:21px;width:9px;height:9px;border-radius:50%;background:var(--type-color);box-shadow:0 0 0 4px rgba(255,255,255,.035)}
+.time{font-weight:700;color:var(--text);font-size:13px;line-height:1.45}
+.duration{display:block;color:var(--dimmer);font-size:10px;font-weight:400;margin-top:3px}
+.event-main{min-width:0}
+.event-title{font-size:14px;font-weight:700;margin-bottom:7px;line-height:1.35}
+.event-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:5px;border:1px solid var(--borderl);border-radius:99px;padding:4px 9px;
+  font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.025);font-weight:700;
+}
+.pill.type{border-color:color-mix(in srgb,var(--type-color) 45%, transparent);color:var(--type-color)}
+.pill.done{color:var(--green);border-color:rgba(46,204,113,.25)}
+.note{font-size:11px;color:var(--dim);line-height:1.6;margin-top:9px;max-width:680px}
+.song-list{margin-top:10px;display:grid;gap:6px;max-width:720px}
+.song{
+  display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;
+  border:1px solid rgba(201,168,76,.1);background:rgba(201,168,76,.035);border-radius:4px;padding:7px 9px;
+  font-size:11px;color:var(--dim);
+}
+.song-n{color:var(--gold);font-weight:700;font-size:10px}
+.cue-list{margin-top:10px;display:grid;gap:6px;max-width:720px}
+.cue{
+  display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;
+  border:1px solid rgba(167,139,250,.16);background:rgba(167,139,250,.055);border-radius:4px;padding:7px 9px;
+  font-size:11px;color:var(--dim);
+}
+.cue-n{color:var(--violet);font-weight:700;font-size:10px}
+.checkline{
+  grid-column:1/-1;display:flex;align-items:flex-start;gap:9px;border:1px solid var(--borderl);
+  background:rgba(255,255,255,.028);border-radius:4px;padding:10px 11px;color:var(--dim);font-size:11px;line-height:1.45;
+}
+.checkline input{margin-top:2px;accent-color:var(--gold)}
+.playlist{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:3px}
+.playlist-item{
+  display:grid;grid-template-columns:30px 1fr;gap:9px;border-bottom:1px solid rgba(201,168,76,.07);padding-bottom:8px;
+  font-size:11px;color:var(--dim);line-height:1.45;
+}
+.playlist-item strong{display:block;color:var(--text);font-size:11.5px;margin-bottom:2px}
+.playlist-n{color:var(--gold);font-weight:700}
+.field-help{grid-column:1/-1;font-size:10px;color:var(--dimmer);line-height:1.5;margin-top:-3px}
+.row-actions{display:flex;gap:7px;align-items:flex-start}
+.icon-btn{
+  width:34px;height:34px;border-radius:3px;border:1px solid var(--borderl);background:rgba(255,255,255,.035);color:var(--dim);
+  display:grid;place-items:center;transition:.18s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn.active{border-color:rgba(46,204,113,.34);color:var(--green);background:rgba(46,204,113,.08)}
+.form{padding:18px;display:grid;gap:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.area{min-height:78px;resize:vertical;grid-column:1/-1}
+.analytics{padding:18px;display:grid;gap:16px}
+.mini-title{font-size:8px;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px}
+.bars{display:grid;gap:9px}
+.bar-row{display:grid;grid-template-columns:92px 1fr 32px;gap:9px;align-items:center;font-size:11px;color:var(--dim)}
+.bar{height:8px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--bar-color);border-radius:99px;transition:width .35s}
+.warnings{display:grid;gap:8px}
+.warning{border:1px solid rgba(231,76,60,.25);background:rgba(231,76,60,.06);border-radius:4px;padding:10px 11px;font-size:11px;color:rgba(247,240,231,.78);line-height:1.55}
+.warning.ok{border-color:rgba(46,204,113,.25);background:rgba(46,204,113,.06)}
+.owner-list{display:grid;gap:8px}
+.owner{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(201,168,76,.07);padding-bottom:8px;font-size:11px;color:var(--dim)}
+.owner strong{color:var(--text)}
+.modal-wrap{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.74);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:18px}
+.modal-wrap.open{display:flex}
+.modal{width:min(620px,100%);background:var(--dark2);border:1px solid var(--border);border-radius:6px;box-shadow:0 28px 90px rgba(0,0,0,.55)}
+.modal .panel-head{border-bottom-color:var(--borderl)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);opacity:0;z-index:1100;background:var(--dark3);border:1px solid var(--border);border-radius:99px;padding:11px 18px;color:var(--text);font-size:11px;transition:.25s;box-shadow:0 12px 38px rgba(0,0,0,.35)}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.empty{padding:42px 18px;text-align:center;color:var(--dimmer);font-size:12px}
+@media(max-width:1040px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){
+  .app{padding:12px}.topbar{align-items:flex-start}.brand{align-items:flex-start}.actions{width:100%;justify-content:flex-start}
+  .toolbar{grid-template-columns:1fr 1fr}.toolbar .field{grid-column:1/-1}
+  .event{grid-template-columns:1fr;gap:8px;padding-left:16px}.row-actions{justify-content:flex-start}.form-grid{grid-template-columns:1fr}
+}
+@media print{
+  body{background:white;color:#111}.topbar,.toolbar,.side,.row-actions,.form,.toast{display:none!important}
+  .app{max-width:none;padding:0}.layout{display:block}.panel,.stat{border-color:#ddd;box-shadow:none;background:white}.timeline{padding:0 12px}
+  .event{break-inside:avoid}.event-title,.time{color:#111}.pill,.note,.duration,.panel-sub,.song{color:#555}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="monogram">F&L</div>
+      <div>
+        <div class="eyebrow">Planifikues Dasme</div>
+        <h1>Dasma e Fatos & Linda</h1>
+        <div class="date-line">03.08.2026 - Orar, pergjegjesi, analitike dhe kontroll realizimi</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="exportCsvBtn">CSV</button>
+      <button class="btn" id="exportPlaylistBtn">Playlist</button>
+      <button class="btn" id="exportJsonBtn">JSON</button>
+      <button class="btn" id="shareLinkBtn">Share Link</button>
+      <button class="btn" id="exportHtmlBtn">HTML Kopje</button>
+      <button class="btn" id="importJsonBtn">Import</button>
+      <button class="btn" id="printBtn">Printo</button>
+      <button class="btn danger" id="resetBtn">Rikthe</button>
+      <input id="importFile" type="file" accept="application/json,.json" hidden>
+    </div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Rrjedha e mbremjes</div>
+          <div class="panel-sub" id="timelineSub">Ngjarjet renditen automatikisht sipas ores.</div>
+        </div>
+        <button class="btn primary" id="quickAddBtn">Shto Event</button>
+      </div>
+      <div class="toolbar">
+        <input class="field" id="searchInput" placeholder="Kerko sipas titullit, pergjegjesit ose notes...">
+        <select class="select" id="typeFilter"></select>
+        <select class="select" id="ownerFilter"></select>
+        <select class="select" id="statusFilter">
+          <option value="all">Te gjitha</option>
+          <option value="open">Pa perfunduar</option>
+          <option value="done">Te perfunduara</option>
+        </select>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Event i ri</div>
+            <div class="panel-sub">Shto ore fillimi dhe mbarimi per analitike me te sakte.</div>
+          </div>
+        </div>
+        <form class="form" id="eventForm">
+          <div class="form-grid">
+            <input class="field" id="timeStart" type="time" required>
+            <input class="field" id="timeEnd" type="time">
+            <input class="field" id="title" placeholder="Titulli" required>
+            <select class="select" id="type">
+              <option>Muzike</option>
+              <option>Moment</option>
+              <option>Veprim</option>
+              <option>Ushqim</option>
+              <option>Protokoll</option>
+            </select>
+            <input class="field" id="owner" placeholder="Pergjegjesi">
+            <textarea class="area" id="music" placeholder="Kengët me radhë - nje titull per rresht"></textarea>
+            <div class="field-help">Shembull: Hyrja e ciftit, pastaj vallja, pastaj seti i radhes. Cdo rresht behet nje kenge ne playlist.</div>
+            <textarea class="area" id="cues" placeholder="Aktivitete ne te njejten kohe - nje veprim per rresht"></textarea>
+            <div class="field-help">Shembull: Prerja e tortes | Vallja e ciftit | Fishekzjarret nga stafi i jashtem.</div>
+            <label class="checkline"><input id="allowOverlap" type="checkbox"> Lejo mbivendosje me evente tjera, sepse ky veprim ndodh paralelisht me dicka tjeter.</label>
+            <textarea class="area" id="notes" placeholder="Shenime, detaje teknike, sinjale per DJ/staf..."></textarea>
+          </div>
+          <button class="btn primary" type="submit" id="submitBtn">Shto ne orar</button>
+        </form>
+      </section>
+
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Analitike</div>
+            <div class="panel-sub">Pamje e ngarkeses se mbremjes.</div>
+          </div>
+        </div>
+        <div class="analytics">
+          <div>
+            <div class="mini-title">Koha sipas tipit</div>
+            <div class="bars" id="typeBars"></div>
+          </div>
+          <div>
+            <div class="mini-title">Pergjegjesit</div>
+            <div class="owner-list" id="ownerList"></div>
+          </div>
+          <div>
+            <div class="mini-title">Playlist sekuenciale</div>
+            <div class="playlist" id="playlist"></div>
+          </div>
+          <div>
+            <div class="mini-title">Kontroll rreziku</div>
+            <div class="warnings" id="warnings"></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<div class="modal-wrap" id="modal">
+  <div class="modal">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Ndrysho eventin</div>
+        <div class="panel-sub">Perditeso detajet dhe ruaj ndryshimet.</div>
+      </div>
+      <button class="icon-btn" id="closeModalBtn" aria-label="Mbyll">x</button>
+    </div>
+    <form class="form" id="editForm">
+      <div class="form-grid">
+        <input class="field" id="editStart" type="time" required>
+        <input class="field" id="editEnd" type="time">
+        <input class="field" id="editTitle" placeholder="Titulli" required>
+        <select class="select" id="editType">
+          <option>Muzike</option><option>Moment</option><option>Veprim</option><option>Ushqim</option><option>Protokoll</option>
+        </select>
+        <input class="field" id="editOwner" placeholder="Pergjegjesi">
+        <textarea class="area" id="editMusic" placeholder="Kengët me radhë - nje titull per rresht"></textarea>
+        <div class="field-help">Renditja ruhet fiks si ketu: nje titull ne cdo rresht.</div>
+        <textarea class="area" id="editCues" placeholder="Aktivitete ne te njejten kohe - nje veprim per rresht"></textarea>
+        <div class="field-help">Per shembull: Fishekzjarret, hyrja e tortes, vallja, ndricimi special.</div>
+        <label class="checkline"><input id="editAllowOverlap" type="checkbox"> Lejo mbivendosje te qellimshme me evente tjera.</label>
+        <textarea class="area" id="editNotes" placeholder="Shenime"></textarea>
+      </div>
+      <button class="btn primary" type="submit">Ruaj ndryshimet</button>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = "dasma-fatos-linda-events-v2";
+const typeColors = { Muzike:"#c9a84c", Moment:"#a78bfa", Veprim:"#3498db", Ushqim:"#2ecc71", Protokoll:"#e74c3c" };
+const makeId = () => globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `event-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const defaults = [
+  { id:makeId(), start:"19:00", end:"20:00", title:"Pritja e musafireve", type:"Veprim", owner:"Organizatori", songs:["Instrumentale pritjeje","Jazz / lounge i lehte"], cues:["Kontroll hyrjeje","Koordinim me fotografet"], notes:"Kontroll hyrjeje, tavolinat dhe koordinim me fotografet.", allowOverlap:false, done:false },
+  { id:makeId(), start:"20:00", end:"20:05", title:"Hyrja e ciftit", type:"Moment", owner:"DJ", songs:["Kenga e hyrjes se ciftit"], cues:["Dritat ulen","Dyert hapen me sinjal"], notes:"Dritat ulen, sinjali jepet nga organizatori.", allowOverlap:false, done:false },
+  { id:makeId(), start:"20:05", end:"20:45", title:"Hyrja e tupanave dhe valle", type:"Muzike", owner:"Grupi", songs:["Tupana live","Valle familjare","Set vallzimi"], cues:["Familjet bashkohen ne valle"], notes:"Mbaje energjine lart, pastaj kalo gradualisht ne set vallzimi.", allowOverlap:false, done:false },
+  { id:makeId(), start:"21:00", end:"21:20", title:"Darka", type:"Ushqim", owner:"Restoranti", songs:["Instrumentale e lehte"], cues:["Sherbim aktiv ne tavolina","DJ ul volumin"], notes:"20 minuta sherbim aktiv. DJ ul volumin.", allowOverlap:false, done:false },
+  { id:makeId(), start:"22:00", end:"22:35", title:"Sofra me kenge patriotike", type:"Muzike", owner:"Kengetari", songs:["Set patriotik","Kenge per familjen"], cues:["Mikrofoni backup gati"], notes:"Rezervo mikrofonin kryesor dhe nje backup.", allowOverlap:false, done:false },
+  { id:makeId(), start:"23:30", end:"23:45", title:"Prerja e tortes, vallja dhe fishekzjarret", type:"Moment", owner:"Organizatori", songs:["Kenge romantike per torte","Kenga e valljes pas tortes"], cues:["Hyrja e tortes","Prerja e tortes","Vallja e ciftit","Fishekzjarret ne kulmin e refrenit"], notes:"Fotografi, kameramani, DJ dhe stafi i fishekzjarreve duhet te jene gati para hyrjes se tortes.", allowOverlap:true, done:false },
+  { id:makeId(), start:"00:00", end:"00:20", title:"Shperndarja e tortes", type:"Veprim", owner:"Stafi", songs:["Ambient i qete"], cues:["Stafi nis nga tavolinat familjare"], notes:"Stafi nis nga tavolinat familjare.", allowOverlap:false, done:false }
+];
+let events = normalizeEvents(loadEvents());
+let editingId = null;
+const $ = id => document.getElementById(id);
+
+function loadEvents(){
+  const shared = readSharedHash();
+  if(shared) return shared;
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaults; }
+  catch { return defaults; }
+}
+function encodePlan(list){
+  return encodeURIComponent(JSON.stringify(normalizeEvents(list)));
+}
+function decodePlan(value){
+  return normalizeEvents(JSON.parse(decodeURIComponent(value)));
+}
+function readSharedHash(){
+  const hash = window.location.hash || "";
+  if(!hash.startsWith("#plan=")) return null;
+  try { return decodePlan(hash.slice(6)); }
+  catch { return null; }
+}
+function parseSongs(value){
+  if(Array.isArray(value)) return value.map(s => String(s).trim()).filter(Boolean);
+  return String(value || "").split(/\r?\n|;|\|/).map(s => s.trim()).filter(Boolean);
+}
+function songList(event){
+  return parseSongs(event.songs?.length ? event.songs : event.music);
+}
+function songsText(event){
+  return songList(event).join("\n");
+}
+function cueList(event){
+  return parseSongs(event.cues);
+}
+function cuesText(event){
+  return cueList(event).join("\n");
+}
+function normalizeEvents(list){
+  return (list || []).map(event => ({...event, songs:songList(event), cues:cueList(event), music:undefined, allowOverlap:Boolean(event.allowOverlap)}));
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); }
+function minutes(t){
+  if(!t) return null;
+  const [h,m] = t.split(":").map(Number);
+  let total = h * 60 + m;
+  if(h < 6) total += 1440;
+  return total;
+}
+function duration(e){
+  const s = minutes(e.start), en = minutes(e.end);
+  if(s === null || en === null) return 0;
+  return Math.max(0, en - s);
+}
+function timeLabel(e){ return e.end ? `${e.start}-${e.end}` : e.start; }
+function escapeHtml(value){
+  return String(value || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+}
+function sortedEvents(){
+  return [...events].sort((a,b) => (minutes(a.start) || 0) - (minutes(b.start) || 0));
+}
+function filteredEvents(){
+  const q = $("searchInput").value.trim().toLowerCase();
+  const type = $("typeFilter").value, owner = $("ownerFilter").value, status = $("statusFilter").value;
+  return sortedEvents().filter(e => {
+    const hay = `${e.title} ${e.owner} ${e.type} ${songList(e).join(" ")} ${cueList(e).join(" ")} ${e.notes}`.toLowerCase();
+    return (!q || hay.includes(q)) &&
+      (type === "all" || e.type === type) &&
+      (owner === "all" || e.owner === owner) &&
+      (status === "all" || (status === "done" ? e.done : !e.done));
+  });
+}
+function renderFilters(){
+  const types = ["all", ...new Set(events.map(e => e.type).filter(Boolean))];
+  const owners = ["all", ...new Set(events.map(e => e.owner || "Pa pergjegjes").filter(Boolean))];
+  const oldType = $("typeFilter").value || "all", oldOwner = $("ownerFilter").value || "all";
+  $("typeFilter").innerHTML = types.map(t => `<option value="${escapeHtml(t)}">${t === "all" ? "Te gjitha tipet" : escapeHtml(t)}</option>`).join("");
+  $("ownerFilter").innerHTML = owners.map(o => `<option value="${escapeHtml(o)}">${o === "all" ? "Te gjithe" : escapeHtml(o)}</option>`).join("");
+  $("typeFilter").value = types.includes(oldType) ? oldType : "all";
+  $("ownerFilter").value = owners.includes(oldOwner) ? oldOwner : "all";
+}
+function renderStats(){
+  const total = events.length;
+  const done = events.filter(e => e.done).length;
+  const totalMinutes = events.reduce((sum,e) => sum + duration(e), 0);
+  const owners = new Set(events.map(e => e.owner).filter(Boolean)).size;
+  const progress = total ? Math.round(done / total * 100) : 0;
+  $("stats").innerHTML = [
+    stat(total, "Evente", `${filteredEvents().length} ne pamjen aktive`),
+    stat(`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`, "Kohe e planifikuar", "Nga fillimi deri te aktivitetet me fund"),
+    stat(`${progress}%`, "Progres", `${done}/${total} te perfunduara`),
+    stat(owners, "Pergjegjes", "Shperndarje rolesh per staf")
+  ].join("");
+  $("timelineSub").textContent = `${filteredEvents().length} evente te shfaqura nga ${total} gjithsej.`;
+}
+function stat(n,l,note){ return `<article class="stat"><div class="stat-n">${escapeHtml(n)}</div><div class="stat-l">${escapeHtml(l)}</div><div class="stat-note">${escapeHtml(note)}</div></article>`; }
+function renderTimeline(){
+  const list = filteredEvents();
+  if(!list.length){ $("timeline").innerHTML = `<div class="empty">Nuk ka evente per kete filter.</div>`; return; }
+  $("timeline").innerHTML = list.map(e => {
+    const color = typeColors[e.type] || "#c9a84c";
+    const d = duration(e);
+    const songs = songList(e);
+    const cues = cueList(e);
+    return `<article class="event" style="--type-color:${color}">
+      <div class="time">${escapeHtml(timeLabel(e))}<span class="duration">${d ? d + " min" : "pa fund"}</span></div>
+      <div class="event-main">
+        <div class="event-title">${escapeHtml(e.title)}</div>
+        <div class="event-meta">
+          <span class="pill type">${escapeHtml(e.type || "Pa tip")}</span>
+          <span class="pill">${escapeHtml(e.owner || "Pa pergjegjes")}</span>
+          ${songs.length ? `<span class="pill">${songs.length} kenge</span>` : ""}
+          ${cues.length ? `<span class="pill">${cues.length} veprime paralele</span>` : ""}
+          ${e.allowOverlap ? `<span class="pill">Mbivendosje OK</span>` : ""}
+          ${e.done ? `<span class="pill done">Perfunduar</span>` : ""}
+        </div>
+        ${songs.length ? `<div class="song-list">${songs.map((song,index) => `<div class="song"><span class="song-n">${index + 1}</span><span>${escapeHtml(song)}</span></div>`).join("")}</div>` : ""}
+        ${cues.length ? `<div class="cue-list">${cues.map((cue,index) => `<div class="cue"><span class="cue-n">${index + 1}</span><span>${escapeHtml(cue)}</span></div>`).join("")}</div>` : ""}
+        ${e.notes ? `<div class="note">${escapeHtml(e.notes)}</div>` : ""}
+      </div>
+      <div class="row-actions">
+        <button class="icon-btn ${e.done ? "active" : ""}" onclick="toggleDone('${e.id}')" title="Sheno perfunduar">✓</button>
+        <button class="icon-btn" onclick="openEdit('${e.id}')" title="Ndrysho">✎</button>
+        <button class="icon-btn" onclick="deleteEvent('${e.id}')" title="Fshi">×</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+function renderAnalytics(){
+  const byType = {};
+  events.forEach(e => byType[e.type] = (byType[e.type] || 0) + duration(e));
+  const max = Math.max(1, ...Object.values(byType));
+  $("typeBars").innerHTML = Object.entries(byType).map(([type,min]) => `
+    <div class="bar-row"><span>${escapeHtml(type)}</span><div class="bar"><span style="width:${Math.round(min/max*100)}%;--bar-color:${typeColors[type] || "#c9a84c"}"></span></div><span>${min}m</span></div>
+  `).join("") || `<div class="panel-sub">Ska te dhena.</div>`;
+  const byOwner = {};
+  events.forEach(e => { const o = e.owner || "Pa pergjegjes"; byOwner[o] = (byOwner[o] || 0) + 1; });
+  $("ownerList").innerHTML = Object.entries(byOwner).sort((a,b)=>b[1]-a[1]).map(([owner,count]) => `
+    <div class="owner"><strong>${escapeHtml(owner)}</strong><span>${count} evente</span></div>
+  `).join("");
+  renderPlaylist();
+  renderWarnings();
+}
+function renderPlaylist(){
+  const rows = sortedEvents().flatMap(event => songList(event).map(song => ({ event, song })));
+  $("playlist").innerHTML = rows.length ? rows.map((row,index) => `
+    <div class="playlist-item">
+      <span class="playlist-n">${index + 1}</span>
+      <span><strong>${escapeHtml(row.song)}</strong>${escapeHtml(row.event.start)} - ${escapeHtml(row.event.title)}</span>
+    </div>
+  `).join("") : `<div class="panel-sub">Shto kenge ne evente per te krijuar playlisten.</div>`;
+}
+function renderWarnings(){
+  const list = sortedEvents();
+  const warnings = [];
+  for(let i=1;i<list.length;i++){
+    const prev = list[i-1], cur = list[i];
+    const intentionalOverlap = prev.allowOverlap || cur.allowOverlap;
+    if(prev.end && minutes(prev.end) > minutes(cur.start) && !intentionalOverlap){
+      warnings.push({ text:`Mbivendosje: "${prev.title}" perfundon pas fillimit te "${cur.title}".`, ok:false });
+    }
+    if(prev.end && minutes(prev.end) > minutes(cur.start) && intentionalOverlap){
+      warnings.push({ text:`Mbivendosje e qellimshme: "${prev.title}" dhe "${cur.title}" jane shenuar si paralele.`, ok:true });
+    }
+    if(prev.end){
+      const gap = minutes(cur.start) - minutes(prev.end);
+      if(gap > 35) warnings.push({ text:`Pushim ${gap} min midis "${prev.title}" dhe "${cur.title}".`, ok:false });
+    }
+  }
+  const noOwner = list.filter(e => !e.owner).length;
+  if(noOwner) warnings.push({ text:`${noOwner} evente jane pa pergjegjes.`, ok:false });
+  if(!warnings.length) warnings.push({ text:"Orari duket i balancuar: pa mbivendosje dhe pa sinjale kritike.", ok:true });
+  $("warnings").innerHTML = warnings.map(w => `<div class="warning ${w.ok ? "ok" : ""}">${escapeHtml(w.text)}</div>`).join("");
+}
+function render(){ renderFilters(); renderStats(); renderTimeline(); renderAnalytics(); save(); }
+function readAddForm(){
+  return {
+    id: makeId(),
+    start: $("timeStart").value,
+    end: $("timeEnd").value,
+    title: $("title").value.trim(),
+    type: $("type").value,
+    owner: $("owner").value.trim(),
+    songs: parseSongs($("music").value),
+    cues: parseSongs($("cues").value),
+    notes: $("notes").value.trim(),
+    allowOverlap: $("allowOverlap").checked,
+    done: false
+  };
+}
+function readEditForm(){
+  return {
+    id: editingId,
+    start: $("editStart").value,
+    end: $("editEnd").value,
+    title: $("editTitle").value.trim(),
+    type: $("editType").value,
+    owner: $("editOwner").value.trim(),
+    songs: parseSongs($("editMusic").value),
+    cues: parseSongs($("editCues").value),
+    notes: $("editNotes").value.trim(),
+    allowOverlap: $("editAllowOverlap").checked,
+    done: events.find(e => e.id === editingId)?.done || false
+  };
+}
+function clearAddForm(){ $("eventForm").reset(); $("type").value = "Muzike"; }
+function toast(msg){ $("toast").textContent = msg; $("toast").classList.add("show"); setTimeout(() => $("toast").classList.remove("show"), 2200); }
+function toggleDone(id){ events = events.map(e => e.id === id ? {...e, done:!e.done} : e); render(); }
+function deleteEvent(id){ if(confirm("A deshiron ta fshish kete event?")){ events = events.filter(e => e.id !== id); render(); toast("Eventi u fshi."); } }
+function openEdit(id){
+  const e = events.find(x => x.id === id); if(!e) return;
+  editingId = id;
+  $("editStart").value = e.start; $("editEnd").value = e.end || ""; $("editTitle").value = e.title; $("editType").value = e.type;
+  $("editOwner").value = e.owner || ""; $("editMusic").value = songsText(e); $("editCues").value = cuesText(e); $("editAllowOverlap").checked = Boolean(e.allowOverlap); $("editNotes").value = e.notes || "";
+  $("modal").classList.add("open");
+}
+function closeEdit(){ $("modal").classList.remove("open"); editingId = null; }
+function download(name, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+function exportCsv(){
+  const rows = [["Ora","Fundi","Titulli","Tipi","Pergjegjesi","Playlist","Aktivitete paralele","Mbivendosje OK","Shenime","Perfunduar"], ...sortedEvents().map(e => [e.start,e.end,e.title,e.type,e.owner,songList(e).join(" | "),cueList(e).join(" | "),e.allowOverlap ? "Po" : "Jo",e.notes,e.done ? "Po" : "Jo"])];
+  const csv = rows.map(r => r.map(v => `"${String(v || "").replaceAll('"','""')}"`).join(",")).join("\n");
+  download("dasma-fatos-linda-orari.csv", csv, "text/csv;charset=utf-8");
+}
+function exportPlaylist(){
+  const rows = sortedEvents().flatMap(event => songList(event).map(song => ({ event, song })));
+  const text = rows.map((row,index) => `${index + 1}. ${row.song}\n   ${row.event.start} - ${row.event.title}`).join("\n\n");
+  download("dasma-fatos-linda-playlist.txt", text || "Playlist ende bosh.", "text/plain;charset=utf-8");
+}
+function exportJson(){ download("dasma-fatos-linda-orari.json", JSON.stringify(sortedEvents(), null, 2), "application/json"); }
+async function shareLink(){
+  const base = window.location.href.split("#")[0];
+  const link = `${base}#plan=${encodePlan(sortedEvents())}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    toast("Share link u kopjua.");
+  } catch {
+    prompt("Kopjo kete link:", link);
+  }
+}
+function exportHtmlCopy(){
+  const source = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  const data = JSON.stringify(normalizeEvents(sortedEvents()));
+  const html = source.replace(
+    "let events = normalizeEvents(loadEvents());",
+    `let events = normalizeEvents(${data});`
+  );
+  download("dasma-fatos-linda-editable.html", html, "text/html;charset=utf-8");
+}
+function importJsonFile(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = normalizeEvents(JSON.parse(reader.result));
+      if(!Array.isArray(imported)) throw new Error("Invalid format");
+      events = imported;
+      window.location.hash = "";
+      render();
+      toast("Orari u importua.");
+    } catch {
+      alert("Ky JSON nuk duket si orar valid.");
+    }
+  };
+  reader.readAsText(file);
+}
+$("eventForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const item = readAddForm();
+  if(!item.start || !item.title) return;
+  events.push(item); clearAddForm(); render(); toast("Eventi u shtua.");
+});
+$("editForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const item = readEditForm();
+  events = events.map(ev => ev.id === editingId ? item : ev);
+  closeEdit(); render(); toast("Ndryshimet u ruajten.");
+});
+["searchInput","typeFilter","ownerFilter","statusFilter"].forEach(id => $(id).addEventListener("input", render));
+$("quickAddBtn").addEventListener("click", () => $("timeStart").focus());
+$("closeModalBtn").addEventListener("click", closeEdit);
+$("modal").addEventListener("click", e => { if(e.target.id === "modal") closeEdit(); });
+$("exportCsvBtn").addEventListener("click", exportCsv);
+$("exportPlaylistBtn").addEventListener("click", exportPlaylist);
+$("exportJsonBtn").addEventListener("click", exportJson);
+$("shareLinkBtn").addEventListener("click", shareLink);
+$("exportHtmlBtn").addEventListener("click", exportHtmlCopy);
+$("importJsonBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if(file) importJsonFile(file);
+  e.target.value = "";
+});
+$("printBtn").addEventListener("click", () => window.print());
+$("resetBtn").addEventListener("click", () => {
+  if(confirm("Kjo e kthen orarin ne versionin fillestar. Vazhdo?")){
+    events = defaults.map(e => ({...e, id:makeId()}));
+    render(); toast("Orari u rikthye.");
+  }
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Ftesa Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#c9a84c;--goldl:#e8cc78;--goldd:#8a6c2a;
+  --dark:#07060a;--dark2:#0f0d12;--dark3:#1a1720;
+  --text:#f5f0e8;--dim:rgba(245,240,232,.55);--dimmer:rgba(245,240,232,.3);
+  --border:rgba(201,168,76,.22);--borderl:rgba(201,168,76,.1);
+  --green:#2ecc71;--red:#e74c3c;--blue:#3498db;
+}
+html,body{height:100%;font-family:'Montserrat',sans-serif;background:var(--dark);color:var(--text);overflow-x:hidden}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--dark2);border-right:1px solid var(--borderl);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:60;transition:transform .3s}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ─── SIDEBAR ─── */
+.sb-logo{padding:0 22px;height:64px;display:flex;align-items:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--gold);border-bottom:1px solid var(--borderl);text-decoration:none;gap:4px;flex-shrink:0}
+.sb-logo span{color:var(--dimmer);font-weight:300;font-size:18px}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-section{padding:14px 22px 6px;font-size:7.5px;letter-spacing:3px;text-transform:uppercase;color:rgba(245,240,232,.2);font-weight:700}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 22px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dimmer);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;text-decoration:none;border-left:2px solid transparent}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03);border-left-color:var(--borderl)}
+.sb-item.active{color:var(--gold);background:rgba(201,168,76,.06);border-left-color:var(--gold)}
+.sb-icon{width:18px;text-align:center;font-size:13px;flex-shrink:0}
+.sb-badge{margin-left:auto;padding:2px 7px;border-radius:40px;font-size:8px;font-weight:700;background:rgba(231,76,60,.2);color:var(--red);letter-spacing:.5px}
+.sb-bottom{padding:16px 22px;border-top:1px solid var(--borderl);flex-shrink:0}
+.sb-user{margin-bottom:12px}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-uemail{font-size:9.5px;color:var(--dimmer);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-plan{display:inline-flex;padding:3px 9px;border-radius:40px;font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-top:6px}
+.sp-free{background:rgba(255,255,255,.06);color:var(--dimmer);border:1px solid var(--borderl)}
+.sp-starter{background:rgba(52,152,219,.12);color:var(--blue);border:1px solid rgba(52,152,219,.25)}
+.sp-premium{background:rgba(201,168,76,.14);color:var(--gold);border:1px solid var(--border)}
+.sp-luxury{background:rgba(139,92,246,.14);color:#a78bfa;border:1px solid rgba(139,92,246,.28)}
+.sb-logout{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:rgba(231,76,60,.55);cursor:pointer;background:none;border:none;font-family:'Montserrat',sans-serif;transition:color .18s;padding:0;margin-top:10px;display:block}
+.sb-logout:hover{color:var(--red)}
+
+/* ─── TOPBAR ─── */
+.topbar{height:64px;padding:0 32px;background:var(--dark2);border-bottom:1px solid var(--borderl);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.menu-toggle{display:none;background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px}
+.tb-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--text)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.btn{padding:9px 20px;border-radius:2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;font-family:'Montserrat',sans-serif;font-weight:600;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.bg{background:var(--gold);color:var(--dark)}
+.bg:hover{background:var(--goldl);transform:translateY(-1px)}
+.bo{background:transparent;border:1px solid var(--borderl)!important;color:var(--dim)}
+.bo:hover{border-color:var(--gold)!important;color:var(--gold)}
+.bsm{padding:7px 14px;font-size:8.5px}
+
+/* ─── CONTENT ─── */
+.content{padding:28px 32px;flex:1;overflow-y:auto}
+
+/* ─── WELCOME ─── */
+.welcome{
+  background:linear-gradient(135deg,rgba(201,168,76,.09) 0%,rgba(201,168,76,.02) 100%);
+  border:1px solid var(--border);border-radius:4px;padding:28px 32px;
+  margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;position:relative;overflow:hidden;
+}
+.welcome::before{content:'✦';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:96px;color:rgba(201,168,76,.06);pointer-events:none;font-family:'Cormorant Garamond',serif}
+.w-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:26px;margin-bottom:6px}
+.w-sub{font-size:11.5px;color:var(--dim);line-height:1.65;max-width:420px}
+.w-btns{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ─── STATS ─── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.sc{background:var(--dark2);border:1px solid var(--borderl);border-radius:3px;padding:20px;position:relative;overflow:hidden;cursor:default;transition:border-color .2s}
+.sc:hover{border-color:var(--border)}
+.sc-icon{font-size:20px;margin-bottom:14px;opacity:.7;display:block}
+.sc-n{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:36px;font-weight:300;color:var(--gold);display:block;line-height:1;margin-bottom:4px}
+.sc-l{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dimmer);display:block}
+.sc-delta{font-size:10px;margin-top:8px;display:flex;align-items:center;gap:4px}
+.delta-up{color:var(--green)}.delta-neutral{color:var(--dimmer)}
+
+/* ─── QUICK ACTIONS ─── */
+.qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.qa{border:1px solid var(--borderl);border-radius:3px;padding:20px;cursor:pointer;transition:all .22s;background:var(--dark2);text-align:center}
+.qa:hover{border-color:var(--border);transform:translateY(-2px);background:rgba(201,168,76,.04)}
+.qa-icon{font-size:26px;display:block;margin-bottom:10px}
+.qa-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;letter-spacing:.5px}
+.qa-sub{font-size:10px;color:var(--dimmer);line-height:1.5}
+
+/* ─── TABLES ─── */
+.card{background:var(--dark2);border:1px solid var(--borderl);border-radius:3px;overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--borderl);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:rgba(255,255,255,.015)}
+.card-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px}
+.search{padding:8px 14px;background:rgba(255,255,255,.04);border:1px solid var(--borderl);border-radius:2px;color:var(--text);font-size:12px;font-family:'Montserrat',sans-serif;outline:none;transition:border-color .2s;min-width:200px}
+.search:focus{border-color:var(--border)}
+.search::placeholder{color:var(--dimmer)}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 16px;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dimmer);text-align:left;border-bottom:1px solid var(--borderl);font-weight:600;background:rgba(255,255,255,.015)}
+td{padding:13px 16px;font-size:12px;color:var(--dim);border-bottom:1px solid rgba(201,168,76,.06)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.st{padding:3px 9px;border-radius:40px;font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.st-p{background:rgba(241,196,15,.1);border:1px solid rgba(241,196,15,.25);color:#f1c40f}
+.st-pa{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.st-d{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.25);color:var(--blue)}
+.st-c{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:var(--red)}
+.empty{text-align:center;padding:52px 24px;color:var(--dimmer)}
+.empty-icon{font-size:36px;display:block;margin-bottom:12px;opacity:.35}
+
+/* ─── TEMPLATES GRID ─── */
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.tc{border:1px solid var(--borderl);border-radius:3px;overflow:hidden;cursor:pointer;transition:all .22s;position:relative}
+.tc:hover{border-color:var(--border);transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.45)}
+.tc.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.2)}
+.tcprev{height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;position:relative}
+.tcbadge{position:absolute;top:8px;right:8px;padding:3px 8px;border-radius:40px;font-size:7px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.bv{background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.38);color:var(--gold)}
+.bn{background:rgba(39,174,96,.14);border:1px solid rgba(39,174,96,.3);color:var(--green)}
+.bp{background:rgba(231,76,60,.14);border:1px solid rgba(231,76,60,.3);color:var(--red)}
+.tccheck{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--dark);display:none;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.tc.sel .tccheck{display:flex}
+.tcbody{padding:12px 14px;background:rgba(255,255,255,.025)}
+.tcname{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--text);margin-bottom:3px}
+.tcprice{font-size:12px;color:var(--gold)}
+
+/* ─── ORDER FLOW ─── */
+.flow-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.flow-overlay.open{display:flex}
+.flow-modal{background:var(--dark2);border:1px solid var(--border);border-radius:4px;width:100%;max-width:680px;margin:auto;animation:mIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes mIn{from{opacity:0;transform:scale(.97) translateY(12px)}to{opacity:1;transform:none}}
+.flow-top{padding:24px 28px;border-bottom:1px solid var(--borderl);display:flex;justify-content:space-between;align-items:center}
+.flow-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px}
+.flow-close{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px;line-height:1;transition:color .18s}
+.flow-close:hover{color:var(--text)}
+.flow-steps{display:flex;border-bottom:1px solid var(--borderl);overflow:hidden}
+.fstep{flex:1;padding:12px 8px;text-align:center;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dimmer);border-right:1px solid var(--borderl);background:rgba(255,255,255,.015);transition:all .2s;cursor:default}
+.fstep:last-child{border-right:none}
+.fstep.active{color:var(--gold);background:rgba(201,168,76,.07)}
+.fstep.done{color:rgba(39,174,96,.7);background:rgba(39,174,96,.04)}
+.fstep.done::before{content:'✓ '}
+.flow-body{padding:28px}
+.flow-actions{padding:16px 28px;border-top:1px solid var(--borderl);display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+.fg{margin-bottom:16px}
+.fl{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:7px;font-weight:600}
+.fi{width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid var(--borderl);border-radius:2px;color:var(--text);font-size:13px;font-family:'Montserrat',sans-serif;outline:none;transition:border-color .2s}
+.fi:focus{border-color:rgba(201,168,76,.4)}
+.fi::placeholder{color:var(--dimmer)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fh3{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;margin-bottom:18px}
+
+/* Plan selector */
+.plan-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ps-opt{border:1px solid var(--borderl);border-radius:2px;padding:16px 14px;cursor:pointer;transition:all .18s;text-align:center}
+.ps-opt:hover{border-color:var(--border)}
+.ps-opt.active{border-color:var(--gold);background:rgba(201,168,76,.07)}
+.ps-name{font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px;font-weight:700}
+.ps-price{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text);display:block;line-height:1}
+.ps-price small{font-family:'Montserrat',sans-serif;font-size:11px;color:var(--dim)}
+.ps-guests{font-size:9px;color:var(--dimmer);margin-top:6px;display:block}
+
+/* Summary */
+.summary{background:rgba(201,168,76,.04);border:1px solid var(--borderl);border-radius:2px;padding:18px;margin-bottom:20px}
+.sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.07);font-size:12px}
+.sum-row:last-child{border-bottom:none;padding-top:12px;font-weight:600;font-size:14px;color:var(--gold)}
+.stripe-pay{width:100%;padding:14px;background:#635bff;color:#fff;border:none;border-radius:2px;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:10px}
+.stripe-pay:hover{background:#7a73ff;transform:translateY(-1px);box-shadow:0 8px 22px rgba(99,91,255,.35)}
+
+/* Settings */
+.settings-card{background:rgba(255,255,255,.025);border:1px solid var(--borderl);border-radius:3px;padding:24px;margin-bottom:14px}
+.settings-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;margin-bottom:18px}
+.danger-zone{background:rgba(231,76,60,.04);border:1px solid rgba(231,76,60,.15);border-radius:3px;padding:20px}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);z-index:9999;background:rgba(20,17,18,.96);border:1px solid var(--border);border-radius:40px;padding:12px 26px;font-size:11px;letter-spacing:1px;color:var(--text);transition:transform .38s cubic-bezier(.16,1,.3,1),opacity .3s;opacity:0;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ─── LOADING ─── */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--dimmer);font-size:11px;letter-spacing:3px;text-transform:uppercase;gap:12px}
+.spin{width:16px;height:16px;border:2px solid var(--borderl);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1024px){.stats{grid-template-columns:repeat(2,1fr)}.qa-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-220px)}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}.menu-toggle{display:flex}
+  .stats{grid-template-columns:1fr 1fr}.frow{grid-template-columns:1fr}
+  .plan-sel{grid-template-columns:1fr}
+  .content{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sb-logo">Ftesa<span> Pro</span></a>
+  <nav class="sb-nav">
+    <div class="sb-section">Kryesore</div>
+    <button class="sb-item" id="si-overview" onclick="showTab('overview')">
+      <span class="sb-icon">◈</span> Pamja e Përgjithshme
+    </button>
+    <button class="sb-item" id="si-new" onclick="openOrder()">
+      <span class="sb-icon">+</span> Porosi e Re
+    </button>
+    <div class="sb-section">Menaxhim</div>
+    <button class="sb-item" id="si-templates" onclick="showTab('templates')">
+      <span class="sb-icon">✦</span> Templateet
+    </button>
+    <button class="sb-item" id="si-orders" onclick="showTab('orders')">
+      <span class="sb-icon">◻</span> Porositë Mia
+      <span class="sb-badge" id="pendingBadge" style="display:none">!</span>
+    </button>
+    <div class="sb-section">Llogaria</div>
+    <button class="sb-item" id="si-settings" onclick="showTab('settings')">
+      <span class="sb-icon">⚙</span> Cilësimet
+    </button>
+    <a href="index.html" class="sb-item"><span class="sb-icon">←</span> Kthehu</a>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <span class="sb-uname" id="sbName">—</span>
+      <span class="sb-uemail" id="sbEmail">—</span>
+      <span class="sb-plan sp-free" id="sbPlan">Free</span>
+    </div>
+    <button class="sb-logout" onclick="doLogout()">Dilni nga llogaria ↗</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="tb-title" id="tbTitle">Paneli Kryesor</div>
+    </div>
+    <div class="tb-right">
+      <span id="tbPlanBadge" class="sb-plan sp-free" style="font-size:8px">Free</span>
+      <button class="btn bg bsm" onclick="openOrder()">+ Porosi e Re</button>
+    </div>
+  </header>
+  <div class="content" id="content">
+    <div class="loading"><div class="spin"></div> Duke ngarkuar...</div>
+  </div>
+</main>
+
+</div>
+
+<!-- ORDER FLOW -->
+<div class="flow-overlay" id="flowOverlay">
+  <div class="flow-modal">
+    <div class="flow-top">
+      <div class="flow-title">Porosi e Re</div>
+      <button class="flow-close" onclick="closeOrder()">✕</button>
+    </div>
+    <div class="flow-steps" id="flowSteps"></div>
+    <div class="flow-body" id="flowBody"></div>
+    <div class="flow-actions" id="flowActions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="sidebarOverlay" onclick="closeSidebar()" style="position:fixed;inset:0;z-index:59;display:none;background:rgba(0,0,0,.5)"></div>
+
+<script>
+const SUPABASE_URL = https://wjvdposbkhxedvhlwlhx.supabase.co ;
+const SUPABASE_ANON_KEY = sb_publishable_FqVMOFI8eWFyXFRgMXM9Kw_SbrIpwgv ;
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+const TEMPLATES=[
+  {id:1,name:'Golden Heart Scratch',desc:'Gërvish arin',price:29,bg:'linear-gradient(135deg,#1a1208,#2e1e0a)',nc:'#e8cc78',b:'bp',bt:'🔥 Popullare'},
+  {id:2,name:'Dark Cinematic',desc:'Yje + unazë 3D',price:29,bg:'linear-gradient(135deg,#050510,#0a0a20)',nc:'#88aaff',b:'bn',bt:'✨ E Re'},
+  {id:3,name:'Zarfi me Fjongë',desc:'Fjongë + pullë dylli',price:34,bg:'linear-gradient(135deg,#1a1208,#3a2810)',nc:'#e8d4a8',b:'bp',bt:'🎀 Popullare'},
+  {id:6,name:'Royal Velvet',desc:'Perde velvet mbretërore',price:39,bg:'linear-gradient(135deg,#1a0a1a,#2a1530)',nc:'#d4a8e8',b:'bv',bt:'👑 VIP'},
+  {id:17,name:'The Grand Ribbon',desc:'Fjongë ari + petale',price:44,bg:'linear-gradient(135deg,#07060a,#12100c)',nc:'#e8cc78',b:'bv',bt:'🎀 Elite'},
+  {id:18,name:'The Majestic',desc:'Zarfi + lustër kristal',price:44,bg:'linear-gradient(135deg,#ede8e0,#e4e0d8)',nc:'#2a2420',b:'bv',bt:'✉️ Elite'},
+  {id:19,name:'We Do',desc:'Foto B&W + timeline',price:49,bg:'#0d0d0d',nc:'#fff',b:'bp',bt:'⭐ Popullare'},
+  {id:20,name:'Ethereal Garden',desc:'Kopshti lulor + monogram',price:49,bg:'linear-gradient(135deg,#c8dde8,#ddeeff)',nc:'#2a3a44',b:'bn',bt:'🌸 E Re'},
+  {id:21,name:'Grand Velvet',desc:'Pullë çahet + perde velvet',price:59,bg:'linear-gradient(135deg,#1e1408,#2e1e0a)',nc:'#fdfaf4',b:'bv',bt:'👑 Luxury'},
+  {id:22,name:'Kopshti Mesdhetar',desc:'Zarfi jeshil + harku guri',price:54,bg:'linear-gradient(135deg,#4a6a3e,#7a9e6c)',nc:'#faf6ef',b:'bn',bt:'🌿 E Re'},
+  {id:23,name:'Cinematic Zarf',desc:'Zarfi 3D WebGL realist',price:69,bg:'linear-gradient(135deg,#0e0c08,#1a1a10)',nc:'#f2ece0',b:'bv',bt:'🎬 E Re'},
+];
+const PLANS={
+  starter:{name:'Starter',price:29,guests:50},
+  premium:{name:'Premium',price:49,guests:200},
+  luxury:{name:'Luxury',price:89,guests:9999},
+};
+
+// ── STATE ──
+let user=null,profile=null,orders=[],currentTab='overview';
+let orderState={step:1,templateId:null,details:{},plan:'premium'};
+
+// ── INIT ──
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){location.href='index.html';return;}
+  user=session.user;
+  const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single();
+  profile=p||{full_name:user.user_metadata?.full_name||user.email.split('@')[0],plan:'free'};
+  const{data:o}=await sb.from('orders').select('*').eq('user_id',user.id).order('created_at',{ascending:false});
+  orders=o||[];
+  updateSidebar();
+  const params=new URLSearchParams(location.search);
+  if(params.get('order')==='success'){showToast('✓ Pagesa u krye! Porosia u regjistrua.');loadOrders();}
+  if(params.get('template')){openOrder();setTimeout(()=>selectTemplate(parseInt(params.get('template'))),200);}
+  if(params.get('plan')){openOrder();setTimeout(()=>{orderState.step=3;renderFlowStep();},200);}
+  showTab('overview');
+}
+
+// ── SIDEBAR ──
+function updateSidebar(){
+  const nm=profile?.full_name||user?.email||'—';
+  document.getElementById('sbName').textContent=nm;
+  document.getElementById('sbEmail').textContent=user?.email||'—';
+  const pl=profile?.plan||'free';
+  const plLabel={free:'Plan Falas',starter:'Starter',premium:'Premium',luxury:'Luxury'}[pl]||pl;
+  ['sbPlan','tbPlanBadge'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.textContent=plLabel;
+    el.className=`sb-plan sp-${pl}`;
+  });
+  const pending=orders.filter(o=>o.status==='pending').length;
+  const pb=document.getElementById('pendingBadge');
+  if(pb){pb.style.display=pending?'flex':'none';pb.textContent=pending;}
+}
+function toggleSidebar(){
+  const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');
+  s.classList.toggle('open');o.style.display=s.classList.contains('open')?'block':'none';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display='none';
+}
+
+// ── TABS ──
+function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  const si=document.getElementById('si-'+tab);
+  if(si)si.classList.add('active');
+  const titles={overview:'Paneli Kryesor',templates:'Zgjidhni Template',orders:'Porositë Mia',settings:'Cilësimet e Llogarisë'};
+  document.getElementById('tbTitle').textContent=titles[tab]||tab;
+  const c=document.getElementById('content');
+  if(tab==='overview')renderOverview(c);
+  else if(tab==='templates')renderTemplates(c);
+  else if(tab==='orders')renderOrders(c);
+  else if(tab==='settings')renderSettings(c);
+}
+
+// ── OVERVIEW ──
+function renderOverview(c){
+  const paid=orders.filter(o=>o.status==='paid'||o.status==='delivered');
+  const pending=orders.filter(o=>o.status==='pending');
+  const rev=paid.reduce((s,o)=>s+(o.amount||0),0);
+  const guestTotal=orders.reduce((s,o)=>s+(o.guests_count||0),0);
+  c.innerHTML=`
+  <div class="welcome">
+    <div>
+      <div class="w-title">Mirëdita, ${profile?.full_name?.split(' ')[0]||'mik'} ✦</div>
+      <p class="w-sub">Menaxhoni porositë ose krijoni ftesa të reja. Gjithçka është një klik larg.</p>
+    </div>
+    <div class="w-btns">
+      <button class="btn bg" onclick="openOrder()">+ Porosi e Re</button>
+      <button class="btn bo" onclick="showTab('templates')">Shfleto Templateet</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="sc">
+      <span class="sc-icon">📋</span>
+      <span class="sc-n">${orders.length}</span>
+      <span class="sc-l">Porosi Gjithsej</span>
+      <div class="sc-delta delta-neutral">Që nga fillimi</div>
+    </div>
+    <div class="sc">
+      <span class="sc-icon">✓</span>
+      <span class="sc-n" style="color:var(--green)">${paid.length}</span>
+      <span class="sc-l">Të Paguara</span>
+      <div class="sc-delta delta-up">✓ Konfirmuara</div>
+    </div>
+    <div class="sc">
+      <span class="sc-icon">◉</span>
+      <span class="sc-n">${guestTotal}</span>
+      <span class="sc-l">Të Ftuar Gjithsej</span>
+      <div class="sc-delta delta-neutral">Nga të gjitha porositë</div>
+    </div>
+    <div class="sc">
+      <span class="sc-icon">€</span>
+      <span class="sc-n" style="color:var(--gold)">€${rev}</span>
+      <span class="sc-l">Investim Total</span>
+      <div class="sc-delta delta-neutral">${paid.length} porosi të paguara</div>
+    </div>
+  </div>
+  ${pending.length?`<div style="background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-radius:3px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><span style="font-size:16px">⚠</span><div><div style="font-size:12px;font-weight:600;color:#f1c40f;margin-bottom:3px">${pending.length} porosi presin pagesën</div><div style="font-size:11px;color:var(--dimmer)">Kliko "Paguaj" pranë porosisë për të vazhduar.</div></div><button class="btn bo bsm" style="margin-left:auto" onclick="showTab('orders')">Shiko →</button></div>`:''}
+  <div class="qa-grid">
+    <div class="qa" onclick="openOrder()">
+      <span class="qa-icon">✦</span>
+      <div class="qa-title">Porosi e Re</div>
+      <div class="qa-sub">Zgjidh template dhe personalizo ftesën tënde</div>
+    </div>
+    <div class="qa" onclick="showTab('templates')">
+      <span class="qa-icon">◈</span>
+      <div class="qa-title">Shfleto Templateet</div>
+      <div class="qa-sub">Krahaso 23 template luksoze me preview live</div>
+    </div>
+    <div class="qa" onclick="showTab('orders')">
+      <span class="qa-icon">◻</span>
+      <div class="qa-title">Porositë Mia</div>
+      <div class="qa-sub">Shiko historikun dhe statuset e porosive</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Aktiviteti i Fundit</div>
+      <button class="btn bo bsm" onclick="showTab('orders')">Shiko të gjitha</button>
+    </div>
+    ${buildOrdersTable(orders.slice(0,5))}
+  </div>`;
+}
+
+// ── TEMPLATES ──
+let selTmplId=null;
+function renderTemplates(c){
+  c.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;margin-bottom:4px">Zgjidhni Templatën</div>
+      <div style="font-size:11px;color:var(--dim)">Klikoni mbi një template për ta zgjedhur, pastaj klikoni "Porosit".</div>
+    </div>
+    <button class="btn bg" id="tmplOrderBtn" style="display:none" onclick="orderFromTemplate()">Porosit Templatën e Zgjedhur →</button>
+  </div>
+  <div class="tg" id="tGrid">
+    ${TEMPLATES.map((t,i)=>`
+    <div class="tc" id="tc-${t.id}" onclick="selectTemplate(${t.id})">
+      <div class="tcprev" style="background:${t.bg}">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:${t.nc};text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.5)">${t.name}</div>
+        <div style="font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:8px">Preview</div>
+        <div class="tccheck">✓</div>
+        <div class="tcbadge ${t.b}">${t.bt}</div>
+      </div>
+      <div class="tcbody">
+        <div class="tcname">${t.name}</div>
+        <div class="tcprice">nga €${t.price}</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function selectTemplate(id){
+  selTmplId=id;
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('tc-'+id)?.classList.add('sel');
+  const btn=document.getElementById('tmplOrderBtn');
+  if(btn)btn.style.display='flex';
+  // If inside order flow
+  const fb=document.getElementById('flowBody');
+  if(fb&&fb.querySelector('#fGrid')){
+    document.querySelectorAll('#fGrid .tc').forEach(c=>c.classList.remove('sel'));
+    document.querySelectorAll(`#fGrid .tc`).forEach(c=>{
+      if(c.id==='ftc-'+id)c.classList.add('sel');
+    });
+    orderState.templateId=id;
+    const nxt=document.querySelector('#flowActions .btn.bg');
+    if(nxt)nxt.disabled=false;
+  }
+}
+function orderFromTemplate(){if(selTmplId){openOrder();setTimeout(()=>{orderState.templateId=selTmplId;selectTemplate(selTmplId);},200);}}
+
+// ── ORDERS ──
+function renderOrders(c){
+  c.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;margin-bottom:4px">Porositë Mia</div>
+      <div style="font-size:11px;color:var(--dim)">Gjithsej ${orders.length} porosi</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input class="search" placeholder="Kërko templatein..." oninput="filterOrders(this.value)" id="orderSearch">
+      <button class="btn bg bsm" onclick="openOrder()">+ Porosi e Re</button>
+    </div>
+  </div>
+  <div class="card"><div id="ordersWrap">${buildOrdersTable(orders)}</div></div>`;
+}
+function filterOrders(q){
+  const f=orders.filter(o=>!q||(o.template_name||'').toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('ordersWrap').innerHTML=buildOrdersTable(f);
+}
+function buildOrdersTable(list){
+  if(!list.length)return`<div class="empty"><span class="empty-icon">✦</span><div style="font-size:12px;margin-bottom:14px">Nuk keni asnjë porosi ende.</div><button class="btn bg bsm" onclick="openOrder()">+ Krijo Porosinë e Parë</button></div>`;
+  return`<table>
+  <thead><tr><th>Template</th><th>Plani</th><th>Të Ftuar</th><th>Shuma</th><th>Statusi</th><th>Data</th><th></th></tr></thead>
+  <tbody>${list.map(o=>{
+    const st=o.status||'pending';
+    const stMap={pending:['st-p','Në Pritje'],paid:['st-pa','Paguar'],delivered:['st-d','Dorëzuar'],cancelled:['st-c','Anuluar']};
+    const[scls,slbl]=stMap[st]||['st-p','—'];
+    const dt=new Date(o.created_at).toLocaleDateString('sq-AL',{day:'2-digit',month:'short',year:'2-digit'});
+    return`<tr>
+      <td style="color:var(--text);font-weight:500">${o.template_name||'Template #'+o.template_id}</td>
+      <td style="text-transform:capitalize">${o.plan||'—'}</td>
+      <td>${o.guests_count||'—'}</td>
+      <td style="color:var(--gold);font-weight:600">€${o.amount||'—'}</td>
+      <td><span class="st ${scls}">${slbl}</span></td>
+      <td>${dt}</td>
+      <td>${st==='pending'?`<button class="btn bg bsm" onclick="retryPay(${o.id})">Paguaj →</button>`:st==='paid'||st==='delivered'?`<button class="btn bo bsm" onclick="getLinks(${o.id})">Linqet ↗</button>`:''}</td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+// ── SETTINGS ──
+function renderSettings(c){
+  c.innerHTML=`
+  <div style="max-width:500px">
+    <div class="settings-card">
+      <div class="settings-title">Informacioni Personal</div>
+      <div class="fg"><label class="fl">Emri i Plotë</label><input class="fi" id="settName" value="${profile?.full_name||''}"></div>
+      <div class="fg"><label class="fl">Email</label><input class="fi" value="${user?.email||''}" disabled style="opacity:.5;cursor:not-allowed"></div>
+      <button class="btn bg bsm" onclick="saveProfile()">Ruaj Ndryshimet</button>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">Fjalëkalimi</div>
+      <div class="fg"><label class="fl">Fjalëkalimi i Ri</label><input type="password" class="fi" id="settPass" placeholder="Minimum 6 karaktere"></div>
+      <button class="btn bo bsm" onclick="changePass()">Ndrysho Fjalëkalimin</button>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">Plani Aktual</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:16px">Plan aktual: <strong style="color:var(--gold)">${(profile?.plan||'free').toUpperCase()}</strong></div>
+      <button class="btn bg bsm" onclick="openOrder()">Shiko Planetë ↗</button>
+    </div>
+    <div class="danger-zone">
+      <div style="font-size:12px;font-weight:600;color:rgba(231,76,60,.7);margin-bottom:6px">Zona e Rrezikshme</div>
+      <div style="font-size:11px;color:var(--dimmer);margin-bottom:14px">Fshirja e llogarisë është e pakthyeshme dhe humbin të gjitha të dhënat.</div>
+      <button class="btn bsm" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2)!important;color:var(--red)" onclick="if(confirm('Jeni të sigurt?'))doLogout()">Fshi Llogarinë</button>
+    </div>
+  </div>`;
+}
+async function saveProfile(){
+  const name=document.getElementById('settName').value.trim();
+  if(!name)return;
+  await sb.from('profiles').upsert({id:user.id,full_name:name,plan:profile?.plan||'free'});
+  profile.full_name=name;updateSidebar();showToast('✓ Profili u ruajt me sukses');
+}
+async function changePass(){
+  const p=document.getElementById('settPass').value;
+  if(!p||p.length<6){showToast('⚠ Fjalëkalimi duhet të jetë minimum 6 karaktere');return;}
+  const{error}=await sb.auth.updateUser({password:p});
+  if(error)showToast('⚠ '+error.message);
+  else{document.getElementById('settPass').value='';showToast('✓ Fjalëkalimi u ndryshua');}
+}
+
+// ── ORDER FLOW ──
+let flowStep=1;
+function openOrder(){
+  orderState={step:1,templateId:null,details:{},plan:'premium'};
+  flowStep=1;
+  document.getElementById('flowOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  renderFlowStep();
+}
+function closeOrder(){
+  document.getElementById('flowOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function renderFlowStep(){
+  const steps=['Template','Detajet','Plani','Pagesa'];
+  document.getElementById('flowSteps').innerHTML=steps.map((s,i)=>{
+    const n=i+1;
+    const cls=n<flowStep?'fstep done':n===flowStep?'fstep active':'fstep';
+    return`<div class="${cls}">${s}</div>`;
+  }).join('');
+  const b=document.getElementById('flowBody');
+  const a=document.getElementById('flowActions');
+  if(flowStep===1)renderFS1(b,a);
+  else if(flowStep===2)renderFS2(b,a);
+  else if(flowStep===3)renderFS3(b,a);
+  else if(flowStep===4)renderFS4(b,a);
+}
+
+function renderFS1(b,a){
+  b.innerHTML=`
+  <div class="fh3">Zgjidhni templatën tuaj</div>
+  <div class="tg" id="fGrid" style="max-height:52vh;overflow-y:auto;padding-right:4px">
+    ${TEMPLATES.map(t=>`
+    <div class="tc ${orderState.templateId===t.id?'sel':''}" id="ftc-${t.id}" onclick="selectTemplate(${t.id})">
+      <div class="tcprev" style="background:${t.bg};height:150px">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:${t.nc};text-align:center">${t.name}</div>
+        <div class="tccheck">✓</div>
+        <div class="tcbadge ${t.b}">${t.bt}</div>
+      </div>
+      <div class="tcbody"><div class="tcname">${t.name}</div><div class="tcprice">€${t.price}</div></div>
+    </div>`).join('')}
+  </div>`;
+  a.innerHTML=`
+  <div style="font-size:11px;color:var(--dimmer)">${orderState.templateId?'Template i zgjedhur ✓':'Zgjidhni një template për të vazhduar'}</div>
+  <button class="btn bg" onclick="nextFS()" ${!orderState.templateId?'disabled':''}>Vazhdoni →</button>`;
+}
+
+function renderFS2(b,a){
+  const d=orderState.details;
+  b.innerHTML=`
+  <div class="fh3">Detajet e Ftesës</div>
+  <div class="frow">
+    <div class="fg"><label class="fl">Emri i Dhëndrit</label><input class="fi" id="fd-g" value="${d.g||''}" placeholder="Artan"></div>
+    <div class="fg"><label class="fl">Emri i Nuses</label><input class="fi" id="fd-b" value="${d.b||''}" placeholder="Besa"></div>
+  </div>
+  <div class="frow">
+    <div class="fg"><label class="fl">Data e Dasmës</label><input type="date" class="fi" id="fd-date" value="${d.date||''}"></div>
+    <div class="fg"><label class="fl">Ora e Fillimit</label><input type="time" class="fi" id="fd-time" value="${d.time||'19:00'}"></div>
+  </div>
+  <div class="fg"><label class="fl">Salla / Vendi i Festës</label><input class="fi" id="fd-venue" value="${d.venue||''}" placeholder="Adora Hall, Prishtinë"></div>
+  <div class="fg"><label class="fl">Numri i Përafërt i të Ftuarve</label><input type="number" class="fi" id="fd-guests" value="${d.guests||100}" placeholder="150"></div>`;
+  a.innerHTML=`
+  <button class="btn bo" onclick="prevFS()">← Kthehu</button>
+  <button class="btn bg" onclick="saveFS2()">Vazhdoni →</button>`;
+}
+function saveFS2(){
+  const g=document.getElementById('fd-g').value.trim();
+  const b2=document.getElementById('fd-b').value.trim();
+  const date=document.getElementById('fd-date').value;
+  const venue=document.getElementById('fd-venue').value.trim();
+  if(!g||!b2||!date||!venue){showToast('⚠ Plotësoni të gjitha fushat e detyrueshme');return;}
+  orderState.details={g,b:b2,date,venue,time:document.getElementById('fd-time').value,guests:parseInt(document.getElementById('fd-guests').value)||100};
+  nextFS();
+}
+
+function renderFS3(b,a){
+  const t=TEMPLATES.find(t=>t.id===orderState.templateId);
+  b.innerHTML=`
+  <div class="fh3">Zgjidhni Planin</div>
+  <div class="plan-sel">
+    ${Object.entries(PLANS).map(([k,p])=>`
+    <div class="ps-opt ${orderState.plan===k?'active':''}" onclick="setPlan('${k}',this)">
+      <span class="ps-name">${p.name}</span>
+      <span class="ps-price">€${p.price}<small>/ftesë</small></span>
+      <span class="ps-guests">Deri ${p.guests>500?'∞':p.guests} të ftuar</span>
+    </div>`).join('')}
+  </div>
+  <div style="background:rgba(201,168,76,.04);border:1px solid var(--borderl);border-radius:2px;padding:14px;margin-top:18px;font-size:11.5px;color:var(--dim);line-height:1.75">
+    <strong style="color:var(--gold)">✓ Template:</strong> ${t?.name||'—'}<br>
+    <strong style="color:var(--gold)">✓ Çifti:</strong> ${orderState.details.g} &amp; ${orderState.details.b}<br>
+    <strong style="color:var(--gold)">✓ Data:</strong> ${orderState.details.date} · ora ${orderState.details.time}<br>
+    <strong style="color:var(--gold)">✓ Salla:</strong> ${orderState.details.venue}
+  </div>`;
+  a.innerHTML=`
+  <button class="btn bo" onclick="prevFS()">← Kthehu</button>
+  <button class="btn bg" onclick="nextFS()">Vazhdoni →</button>`;
+}
+function setPlan(key,el){
+  orderState.plan=key;
+  document.querySelectorAll('.ps-opt').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function renderFS4(b,a){
+  const t=TEMPLATES.find(t=>t.id===orderState.templateId);
+  const pl=PLANS[orderState.plan];
+  const total=pl.price;
+  const stripeLinks={
+    starter:'https://buy.stripe.com/YOUR_STARTER_LINK',
+    premium:'https://buy.stripe.com/YOUR_PREMIUM_LINK',
+    luxury:'https://buy.stripe.com/YOUR_LUXURY_LINK',
+  };
+  b.innerHTML=`
+  <div class="fh3">Konfirmim dhe Pagesa</div>
+  <div class="summary">
+    <div class="sum-row"><span>Template: ${t?.name}</span><span style="color:var(--gold)">€${t?.price}</span></div>
+    <div class="sum-row"><span>Plan: ${pl.name} (deri ${pl.guests>500?'∞':pl.guests} të ftuar)</span><span>—</span></div>
+    <div class="sum-row"><span>Çifti: ${orderState.details.g} &amp; ${orderState.details.b}</span><span>—</span></div>
+    <div class="sum-row"><span>Data: ${orderState.details.date}</span><span>—</span></div>
+    <div class="sum-row"><span>Total</span><span>€${total}</span></div>
+  </div>
+  <div style="font-size:11px;color:var(--dimmer);line-height:1.75;border:1px solid var(--borderl);border-radius:2px;padding:14px;margin-bottom:20px">
+    🔒 Pagesa e sigurt me Stripe (kartë krediti / debiti)<br>
+    ✓ Brenda 24 orësh merrni linqet personale<br>
+    ✓ Anullim i lirë brenda 48 orësh
+  </div>
+  <button class="stripe-pay" id="stripeBtn" onclick="goStripe('${orderState.plan}',${total})">
+    <span>🔒</span> Paguaj me Stripe — €${total}
+  </button>`;
+  a.innerHTML=`
+  <button class="btn bo" onclick="prevFS()">← Ndrysho</button>
+  <div style="font-size:10px;color:var(--dimmer)">Pagesa shkon drejtpërdrejt te Stripe</div>`;
+}
+
+async function goStripe(plan,amount){
+  const btn=document.getElementById('stripeBtn');
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Duke procesuar...';
+  const t=TEMPLATES.find(t=>t.id===orderState.templateId);
+  const{data:order,error}=await sb.from('orders').insert({
+    user_id:user.id,template_id:orderState.templateId,template_name:t?.name,
+    plan,amount,status:'pending',guests_count:orderState.details.guests||0,
+    wedding_data:orderState.details,
+  }).select().single();
+  if(error){btn.disabled=false;btn.innerHTML=`<span>🔒</span> Paguaj me Stripe — €${amount}`;showToast('⚠ '+error.message);return;}
+  orders.unshift(order);
+  const links={
+    starter:`https://buy.stripe.com/YOUR_STARTER_LINK?client_reference_id=${order.id}`,
+    premium:`https://buy.stripe.com/YOUR_PREMIUM_LINK?client_reference_id=${order.id}`,
+    luxury:`https://buy.stripe.com/YOUR_LUXURY_LINK?client_reference_id=${order.id}`,
+  };
+  showToast('Duke ju ridrejtuar te Stripe...');
+  setTimeout(()=>window.open(links[plan]||links.premium,'_blank'),700);
+}
+
+function nextFS(){flowStep++;renderFlowStep();}
+function prevFS(){flowStep--;renderFlowStep();}
+async function loadOrders(){
+  const{data}=await sb.from('orders').select('*').eq('user_id',user.id).order('created_at',{ascending:false});
+  orders=data||[];updateSidebar();
+}
+function retryPay(id){const o=orders.find(o=>o.id===id);if(o){orderState={step:4,templateId:o.template_id,details:o.wedding_data||{},plan:o.plan||'premium'};openOrder();}}
+function getLinks(id){showToast('✓ Linqet do të dërgohen me email brenda pak minutave');}
+
+async function doLogout(){await sb.auth.signOut();location.href='index.html';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+init();
+</script>
+</body>
+</html>
